@@ -1,21 +1,16 @@
-# vue-mask
+# 口罩地圖
 
-> A Vue.js project
+## 用途
+讓使用者可以地圖查找藥局和剩餘的口罩數量
+##使用方式
+* 左上方的選單可以選擇縣市和區域
+* 左方列表為當前區域的藥局資訊
+* 右下角的按鈕可以收縮左方的藥局列表
+* 地圖上的圖標點擊後會跳出藥局資訊
+* 地圖可以拖動
+* 滑鼠移動到地圖上並使用滾輪可以放大縮小
 
-## Build Setup
+## 使用工具
+`HTML`、`CSS`、`Bootstrap`、`Vue.js`
 
-``` bash
-# install dependencies
-npm install
 
-# serve with hot reload at localhost:8080
-npm run dev
-
-# build for production with minification
-npm run build
-
-# build for production and view the bundle analyzer report
-npm run build --report
-```
-
-For a detailed explanation on how things work, check out the [guide](http://vuejs-templates.github.io/webpack/) and [docs for vue-loader](http://vuejs.github.io/vue-loader).
