@@ -78,7 +78,6 @@ export default {
           let lng = 0;
           let lat = 0;
           this.markers.forEach((item) => {
-            console.log(item, "item");
             lng += item.latlng[1];
             lat += item.latlng[0];
           });
