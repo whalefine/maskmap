@@ -222,7 +222,6 @@ export default {
       this.markers = [];
     },
     goto(pharmacy) {
-      console.log(pharmacy, "pharmacy");
       //畫面移動到所選地標
       this.$refs.Map.$_goto(
         pharmacy.geometry.coordinates[1],
