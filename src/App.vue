@@ -196,6 +196,12 @@ export default {
     },
     goto(pharmacy) {
       //畫面移動到所選地標
+      if (this.markerSelected.index) {
+        this.$refs.Map.$refs.marker[
+          this.markerSelected.index
+        ].mapObject.closePopup();
+        this.markerSelected = {};
+      }
       this.$refs.Map.$_goto(
         pharmacy.geometry.coordinates[1],
         pharmacy.geometry.coordinates[0]
