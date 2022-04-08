@@ -10,22 +10,21 @@
         :url="url"
         :attribution="attribution"
       ></l-tile-layer>
-      <template v-for="(markerItem,markerIndex) in markers">
-        <div :key="markerIndex">
-          <l-marker
-            ref="marker"
-            :lat-lng="markerItem.latlng"
-            :icon="markerItem.icon"
-            @click="$_markerClick($event)"
-          >
-            <l-popup
-              v-if="markerItem.content"
-              :content="markerItem.content"
-            >
-            </l-popup>
-          </l-marker>
-        </div>
-      </template>
+      <l-marker
+        v-for="(markerItem,markerIndex) in markers"
+        :key="markerIndex"
+        ref="marker"
+        :lat-lng="markerItem.latlng"
+        :icon="markerItem.icon"
+        @click="$_markerClick($event,markerIndex)"
+      >
+        <l-popup
+          v-if="markerItem.content"
+          :content="markerItem.content"
+          :options="popupOption"
+        >
+        </l-popup>
+      </l-marker>
     </l-map>
   </div>
 </template>
@@ -62,8 +61,9 @@ export default {
     };
   },
   methods: {
-    $_markerClick($event) {
+    $_markerClick($event, index) {
       this.$_goto($event.latlng.lat, $event.latlng.lng);
+      this.$emit("selected", { ...$event, index: index });
     },
     $_goto(lat, lng) {
       this.center = [lat, lng];
@@ -89,6 +89,9 @@ export default {
   props: {
     markers: {
       type: Array,
+    },
+    popupOption: {
+      type: Object,
     },
   },
 };

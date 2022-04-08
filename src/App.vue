@@ -9,8 +9,10 @@
     <loading :active.sync="isLoading"></loading>
     <div class="col-sm">
       <Map
-        :markers="markers"
         ref="Map"
+        :markers="markers"
+        :popupOption="popupOption"
+        @selected="$_onMarkerSelected($event)"
       ></Map>
     </div>
     <div
@@ -39,11 +41,11 @@
       </div>
       <ul class="list-group">
         <!--藥局資訊-->
-        <template v-for="(item, key) in data">
+        <template v-if="this.data&&this.data.length">
           <div
+            v-for="(item, key) in _shopList"
             class="list-group-item text-left item"
             :key="key"
-            v-if="item.properties.county === select.area && item.properties.town === select.areaSection"
             @click="goto(item)"
           >
             <h3>{{ item.properties.name }}</h3>
@@ -91,7 +93,7 @@ export default {
   },
   data: () => ({
     areaList, //台灣地區地名
-    data: {}, //各地區藥局資料
+    data: [], //各地區藥局資料
     select: {
       //使用者選擇的區域
       area: "臺北市",
@@ -133,11 +135,19 @@ export default {
         shadowSize: [41, 41],
       }),
     },
+    popupOption: { closeButton: false },
+    markerSelected: {},
   }),
   methods: {
     updateMarker() {
       //變更地區時，變更地標
       //判斷是否為當地的藥局
+      if (this.markerSelected.index) {
+        this.$refs.Map.$refs.marker[
+          this.markerSelected.index
+        ].mapObject.closePopup();
+        this.markerSelected = {};
+      }
       const pharmacies = this.data.filter((pharmacy) => {
         return (
           pharmacy.properties.county === this.select.area &&
@@ -195,6 +205,7 @@ export default {
       );
       if (_index > -1) {
         this.$refs.Map.$refs.marker[_index].mapObject.openPopup();
+        this.markerSelected.index = _index;
       }
     },
 
@@ -227,6 +238,9 @@ export default {
       }
       this.changeSelect();
     },
+    $_onMarkerSelected($event) {
+      this.markerSelected = $event;
+    },
   },
   computed: {
     _areaSectionList() {
@@ -238,6 +252,14 @@ export default {
       } else {
         return this.areaList[0].AreaList;
       }
+    },
+    _shopList() {
+      if (!this.data || !this.data.length) return [];
+      return this.data.filter(
+        (item) =>
+          item.properties.county === this.select.area &&
+          item.properties.town === this.select.areaSection
+      );
     },
   },
   mounted() {
