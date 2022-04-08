@@ -7,77 +7,43 @@
       <i :class="[isShow ? toggleClass.classA : toggleClass.classB]"></i>
     </a>
     <loading :active.sync="isLoading"></loading>
+    <div class="col-sm">
+      <Map
+        :markers="markers"
+        ref="Map"
+      ></Map>
+    </div>
     <div
-      class="col-sm-6 col-md-5 col-lg-4 col-xl-3 position-absolute fixed-top overflow-auto content"
+      class="col-sm-6 col-md-5 col-lg-4 col-xl-3 position-absolute fixed-top content"
       :class="{show:isShow}"
     >
       <div class="topnav p-3 sticky-top">
-        <div class="form-group d-flex">
-          <label
-            for="city"
-            class="mr-2 col-form-label text-right"
-          >縣市</label>
-          <div class="flex-fill">
-            <select
-              id="city"
-              class="form-control"
-              v-model="select.city"
-              @change="select.area = '';"
-            >
-              <option
-                disabled
-                value=""
-              >-- 選擇縣市 --</option>
-              <option
-                :value="item.CityName"
-                v-for="item in cityName"
-                :key="item.CityName"
-              >
-                {{ item.CityName }}
-              </option>
-            </select>
-          </div>
-        </div>
-        <div class="form-group d-flex">
-          <label
-            for="area"
-            class="mr-2 col-form-label text-right"
-          >地區</label>
-          <div class="flex-fill">
-            <select
-              id="area"
-              class="form-control"
-              v-if="select.city"
-              v-model="select.area"
-              @change="changeSelect"
-            >
-              <option
-                disabled
-                value=""
-              >-- 選擇區 --</option>
-              <option
-                :value="item.AreaName"
-                v-for="item in cityName.find((city) => city.CityName === select.city).AreaList"
-                :key="item.AreaName"
-              >
-                {{ item.AreaName }}
-              </option>
-            </select>
-          </div>
-        </div>
+        <BelongsToSelect
+          :optionList="areaList"
+          :textKey="area.textKey"
+          :value="select.area"
+          @input="$_onInput('area',$event)"
+          label="縣市"
+        ></BelongsToSelect>
+        <BelongsToSelect
+          :optionList="_areaSectionList"
+          :textKey="areaSection.textKey"
+          :value="select.areaSection"
+          @input="$_onInput('areaSection',$event)"
+          label="地區"
+        ></BelongsToSelect>
         <p class="mb-0 color-white text-right">
-          <i class="fas fa-circle "></i> 還有口罩 |
+          <i class="fas fa-circle"></i> 還有口罩 |
           <i class="fas fa-circle"></i> 沒有口罩
         </p>
       </div>
-
       <ul class="list-group">
         <!--藥局資訊-->
         <template v-for="(item, key) in data">
           <div
             class="list-group-item text-left item"
             :key="key"
-            v-if="item.properties.county === select.city && item.properties.town === select.area"
+            v-if="item.properties.county === select.area && item.properties.town === select.areaSection"
             @click="goto(item)"
           >
             <h3>{{ item.properties.name }}</h3>
@@ -108,32 +74,35 @@
         </template>
       </ul>
     </div>
-    <div class="col-sm">
-      <!-- <div id="map"></div> -->
-      <Map
-        :markers="markers"
-        ref="Map"
-      ></Map>
-    </div>
+
   </div>
 </template>
 
 <script>
 import L from "leaflet";
-import cityName from "./assets/CityCountyData.json"; //縣市、區域名稱
+import areaList from "./assets/CityCountyData.json"; //縣市、區域名稱
 import Map from "@/components/Map.vue";
+import BelongsToSelect from "@/components/BelongsToSelect";
 export default {
   name: "home",
   components: {
     Map,
+    BelongsToSelect,
   },
   data: () => ({
-    cityName, //台灣地區地名
+    areaList, //台灣地區地名
     data: {}, //各地區藥局資料
     select: {
       //使用者選擇的區域
-      city: "臺北市",
-      area: "中正區",
+      area: "臺北市",
+      areaSection: "中正區",
+    },
+    textKey: "AreaName",
+    areaSection: {
+      textKey: "AreaName",
+    },
+    area: {
+      textKey: "CityName",
     },
     isLoading: false, //loading動畫
     isShow: false, //顯示列表
@@ -142,7 +111,6 @@ export default {
       classA: "fas fa-list-ul",
       classB: "fas fa-map-marked-alt",
     },
-    maskMap: {}, //地圖
     markers: [],
     icons: {
       //地圖地標顏色
@@ -172,8 +140,8 @@ export default {
       //判斷是否為當地的藥局
       const pharmacies = this.data.filter((pharmacy) => {
         return (
-          pharmacy.properties.county === this.select.city &&
-          pharmacy.properties.town === this.select.area
+          pharmacy.properties.county === this.select.area &&
+          pharmacy.properties.town === this.select.areaSection
         );
       });
       pharmacies.forEach((pharmacy) => {
@@ -214,11 +182,6 @@ export default {
 
     clearMarker() {
       //刪除上一群地標
-      // this.maskMap.eachLayer((marker) => {
-      //   if (marker instanceof L.Marker) {
-      //     this.maskMap.removeLayer(marker);
-      //   }
-      // });
       this.markers = [];
     },
     goto(pharmacy) {
@@ -240,30 +203,49 @@ export default {
       this.clearMarker();
       this.updateMarker();
     },
-  },
-  computed: {},
-  mounted() {
-    this.isLoading = true; //loading動畫，給時間拉資料
-
-    // this.maskMap = L.map("map", {
-    //   // 製作map
-    //   center: [25.03, 121.55],
-    //   zoom: 14,
-    // });
-    // L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    //   attribution:
-    //     '<a target="_blank" href="https://www.openstreetmap.org/">© OpenStreetMap 貢獻者</a>',
-    //   maxZoom: 20,
-    // }).addTo(this.maskMap);
-    this.$http
-      .get(
-        "https://raw.githubusercontent.com/kiang/pharmacies/master/json/points.json"
-      )
-      .then((response) => {
-        this.data = response.data.features; //取得藥局資料
-        this.updateMarker(); //初始顯示地標
+    async $_fetchData() {
+      try {
+        this.isLoading = true; //loading動畫，給時間拉資料
+        await this.$http
+          .get(
+            "https://raw.githubusercontent.com/kiang/pharmacies/master/json/points.json"
+          )
+          .then((response) => {
+            this.data = response.data.features; //取得藥局資料
+            this.updateMarker(); //初始顯示地標
+            this.isLoading = false; //拉完資料，loading動畫消失
+          });
+      } catch (err) {
+        console.log(err);
         this.isLoading = false; //拉完資料，loading動畫消失
-      });
+      }
+    },
+    $_onInput(key, $event) {
+      this.select[key] = $event;
+      if (key === "area") {
+        this.select.areaSection = this._areaSectionList[0].AreaName;
+      }
+      this.changeSelect();
+    },
+  },
+  computed: {
+    _areaSectionList() {
+      if (this.select.area) {
+        let findArea = this.areaList.find((city) => {
+          return city.CityName === this.select.area;
+        });
+        return findArea.AreaList;
+      } else {
+        return this.areaList[0].AreaList;
+      }
+    },
+  },
+  mounted() {
+    this.$_fetchData();
+    this.select = {
+      area: areaList[0].CityName,
+      areaSection: areaList[0].AreaList[0].AreaName,
+    };
   },
 };
 </script>
@@ -298,6 +280,10 @@ export default {
 }
 .content.show {
   left: -100%;
+}
+.list-group {
+  max-height: calc(100vh - 164px);
+  overflow-y: scroll;
 }
 .maskCount {
   background-color: #a5a5a5;
