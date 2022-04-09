@@ -12,6 +12,7 @@
         ref="Map"
         :markers="markers"
         :popupOption="popupOption"
+        :closePopupAfterUpdate="true"
         @selected="$_onMarkerSelected($event)"
       ></Map>
     </div>
@@ -99,7 +100,6 @@ export default {
       area: "臺北市",
       areaSection: "中正區",
     },
-    textKey: "AreaName",
     areaSection: {
       textKey: "AreaName",
     },
@@ -116,7 +116,7 @@ export default {
     markers: [],
     icons: {
       //地圖地標顏色
-      blue: new L.Icon({
+      blue: L.icon({
         //有口罩
         iconUrl:
           "https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png",
@@ -125,7 +125,7 @@ export default {
         popupAnchor: [1, -34],
         shadowSize: [41, 41],
       }),
-      grey: new L.Icon({
+      grey: L.icon({
         //沒口罩
         iconUrl:
           "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-grey.png",
@@ -142,12 +142,6 @@ export default {
     updateMarker() {
       //變更地區時，變更地標
       //判斷是否為當地的藥局
-      if (this.markerSelected.index) {
-        this.$refs.Map.$refs.marker[
-          this.markerSelected.index
-        ].mapObject.closePopup();
-        this.markerSelected = {};
-      }
       const pharmacies = this.data.filter((pharmacy) => {
         return (
           pharmacy.properties.county === this.select.area &&
@@ -196,12 +190,6 @@ export default {
     },
     goto(pharmacy) {
       //畫面移動到所選地標
-      if (this.markerSelected.index) {
-        this.$refs.Map.$refs.marker[
-          this.markerSelected.index
-        ].mapObject.closePopup();
-        this.markerSelected = {};
-      }
       this.$refs.Map.$_goto(
         pharmacy.geometry.coordinates[1],
         pharmacy.geometry.coordinates[0]

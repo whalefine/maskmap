@@ -19,6 +19,7 @@
         @click="$_markerClick($event,markerIndex)"
       >
         <l-popup
+          ref="popup"
           v-if="markerItem.content"
           :content="markerItem.content"
           :options="popupOption"
@@ -68,20 +69,40 @@ export default {
     $_goto(lat, lng) {
       this.center = [lat, lng];
     },
+    $_closeAllPopup() {
+      if (!this.$refs.popup) return;
+      this.$refs.popup.forEach((e, index) => {
+        if (e.mapObject.isOpen()) {
+          this.$refs.marker[index].mapObject.closePopup();
+        }
+      });
+    },
+    $_getMarkersCenter() {
+      if (!this.markers || !this.markers.length) return;
+      const markerLength = this.markers.length;
+      let lng = 0;
+      let lat = 0;
+      this.markers.forEach((item) => {
+        lng += item.latlng[1];
+        lat += item.latlng[0];
+      });
+      return {
+        lat: lat / markerLength,
+        lng: lng / markerLength,
+      };
+    },
   },
-  computed: {},
   watch: {
     markers: {
       handler() {
         if (this.markers && this.markers.length) {
-          const markerLength = this.markers.length;
-          let lng = 0;
-          let lat = 0;
-          this.markers.forEach((item) => {
-            lng += item.latlng[1];
-            lat += item.latlng[0];
+          this.$nextTick(() => {
+            if (this.closePopupAfterUpdate) {
+              this.$_closeAllPopup();
+            }
+            const _centerPosition = this.$_getMarkersCenter();
+            this.$_goto(_centerPosition.lat, _centerPosition.lng);
           });
-          this.$_goto(lat / markerLength, lng / markerLength);
         }
       },
     },
@@ -92,6 +113,10 @@ export default {
     },
     popupOption: {
       type: Object,
+    },
+    closePopupAfterUpdate: {
+      type: Boolean,
+      default: false,
     },
   },
 };
