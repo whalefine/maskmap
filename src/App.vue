@@ -6,7 +6,7 @@
     >
       <i :class="[isShow ? toggleClass.classA : toggleClass.classB]"></i>
     </a>
-    <loading :active.sync="isLoading"></loading>
+    <CircleLoading v-show="isLoading"></CircleLoading>
     <div class="col-sm">
       <Map
         ref="Map"
@@ -85,12 +85,14 @@
 import L from "leaflet";
 import areaList from "./assets/CityCountyData.json"; //縣市、區域名稱
 import Map from "@/components/Map.vue";
+import CircleLoading from "@/components/CircleLoading.vue";
 import BelongsToSelect from "@/components/BelongsToSelect";
 export default {
   name: "home",
   components: {
     Map,
     BelongsToSelect,
+    CircleLoading,
   },
   data: () => ({
     areaList, //台灣地區地名
@@ -190,10 +192,10 @@ export default {
     },
     goto(pharmacy) {
       //畫面移動到所選地標
-      this.$refs.Map.$_goto(
+      this.$refs.Map.$_goto([
         pharmacy.geometry.coordinates[1],
-        pharmacy.geometry.coordinates[0]
-      );
+        pharmacy.geometry.coordinates[0],
+      ]);
       const _index = this.markers.findIndex(
         (e) => e.id === pharmacy.properties.id
       );
