@@ -63,11 +63,11 @@ export default {
   },
   methods: {
     $_markerClick($event, index) {
-      this.$_goto($event.latlng.lat, $event.latlng.lng);
+      this.$_goto([$event.latlng.lat, $event.latlng.lng]);
       this.$emit("selected", { ...$event, index: index });
     },
-    $_goto(lat, lng) {
-      this.center = [lat, lng];
+    $_goto(position) {
+      this.center = position;
     },
     $_closeAllPopup() {
       if (!this.$refs.popup) return;
@@ -86,10 +86,7 @@ export default {
         lng += item.latlng[1];
         lat += item.latlng[0];
       });
-      return {
-        lat: lat / markerLength,
-        lng: lng / markerLength,
-      };
+      return [lat / markerLength, lng / markerLength];
     },
   },
   watch: {
@@ -100,8 +97,7 @@ export default {
             if (this.closePopupAfterUpdate) {
               this.$_closeAllPopup();
             }
-            const _centerPosition = this.$_getMarkersCenter();
-            this.$_goto(_centerPosition.lat, _centerPosition.lng);
+            this.$_goto(this.$_getMarkersCenter());
           });
         }
       },
